@@ -58,9 +58,6 @@ http://127.0.0.1:5000/
 ```
 4. Register a new account or login
 5. Create, view, and manage recipes from the dashboard
-```
-code blocks for commands
-```
  
 ## Help
  
@@ -86,7 +83,7 @@ flask --app flaskr --debug run --port 5001
 
 **Changes to code not showing up**
 ```
-Ensure you're running with the --debug flag for auto-reload command to run if program contains helper info
+Ensure you're running with the --debug flag for auto-reload.
 ```
 
  

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row mb-3">
+      <div class="col">
+        <h1>Recipes</h1>
+      </div>
+      <div class="col text-end">
+        {% if g.user %}
+          <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if recipes %}
+      <div class="row">
+        {% for recipe in recipes %}
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">{{ recipe['title'] }}</h5>
+                <p class="card-text">
+                  <small class="text-muted">By {{ recipe['username'] }}</small><br>
+                  <small class="text-muted">Prep: {{ recipe['prep_minutes'] }} min</small>
+                </p>
+                <p class="card-text">{{ recipe['ingredients'][:50] }}...</p>
+                <a href="{{ url_for('recipes.detail', id=recipe['id']) }}" class="btn btn-sm btn-primary">View</a>
+                {% if g.user and g.user['id'] == recipe['user_id'] %}
+                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ recipe['id'] }}">Delete</button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Delete Confirmation Modal -->
+          <div class="modal fade" id="deleteModal{{ recipe['id'] }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  Are you sure you want to delete <strong>{{ recipe['title'] }}</strong>? This cannot be undone.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <form method="POST" action="{{ url_for('recipes.delete', id=recipe['id']) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No recipes yet. {% if g.user %}<a href="{{ url_for('recipes.create') }}">Create one!</a>{% else %}<a href="{{ url_for('auth.login') }}">Login</a> to add recipes.{% endif %}</p>
+    {% endif %}
+  </div>
+{% endblock %}

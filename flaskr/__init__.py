@@ -1,6 +1,12 @@
+# INF601 - Advanced Programming in Python
+
+# Zach Slusser
+
+# Mini Project 3
+
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 
 
 def create_app(test_config=None):
@@ -21,6 +27,11 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
+    # home page
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
     # a simple page that says hello
     @app.route('/hello')
     def hello():
@@ -31,5 +42,8 @@ def create_app(test_config=None):
 
     from . import auth
     app.register_blueprint(auth.bp)
+
+    from . import recipes
+    app.register_blueprint(recipes.bp)
 
     return app

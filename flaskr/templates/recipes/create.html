@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h1>Add Recipe</h1>
+    <form method="POST" class="mt-4">
+      <div class="mb-3">
+        <label for="title" class="form-label">Recipe Title</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+      </div>
+      <div class="mb-3">
+        <label for="ingredients" class="form-label">Ingredients</label>
+        <textarea class="form-control" id="ingredients" name="ingredients" rows="4" placeholder="List ingredients, one per line" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="instructions" class="form-label">Instructions</label>
+        <textarea class="form-control" id="instructions" name="instructions" rows="5" placeholder="Enter cooking instructions" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="prep_minutes" class="form-label">Prep Time (minutes)</label>
+        <input type="number" class="form-control" id="prep_minutes" name="prep_minutes" min="0" value="0">
+      </div>
+      <button type="submit" class="btn btn-primary">Add Recipe</button>
+      <a href="{{ url_for('recipes.index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+{% endblock %}

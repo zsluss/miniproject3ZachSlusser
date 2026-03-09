@@ -1,3 +1,9 @@
+# INF601 - Advanced Programming in Python
+
+# Zach Slusser
+
+# Mini Project 3
+
 import sqlite3
 from datetime import datetime
 

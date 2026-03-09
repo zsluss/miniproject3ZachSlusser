@@ -18,6 +18,8 @@ def get_db():
             detect_types=sqlite3.PARSE_DECLTYPES
         )
         g.db.row_factory = sqlite3.Row
+        # Enable foreign key constraints
+        g.db.execute('PRAGMA foreign_keys = ON')
 
     return g.db
 

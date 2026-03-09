@@ -57,8 +57,8 @@ def create():
         else:
             db = get_db()
             db.execute(
-                "INSERT INTO recipes (user_id, title, ingredients, instructions, prep_minutes)"
-                " VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO recipes (user_id, title, ingredients, instructions, prep_minutes, created_at)"
+                " VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                 (g.user["id"], title, ingredients, instructions, prep_minutes),
             )
             db.commit()

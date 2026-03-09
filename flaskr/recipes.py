@@ -27,7 +27,7 @@ def index():
     """Display all recipes."""
     db = get_db()
     recipes = db.execute(
-        "SELECT r.id, title, ingredients, instructions, prep_minutes, created_at, user_id, username"
+        "SELECT r.id, r.title, r.ingredients, r.instructions, r.prep_minutes, r.created_at, r.user_id, u.username"
         " FROM recipes r JOIN users u ON r.user_id = u.id"
         " ORDER BY r.created_at DESC"
     ).fetchall()
@@ -94,7 +94,7 @@ def delete(id):
 def get_recipe(id, check_author=True):
     """Get a recipe by ID."""
     recipe = get_db().execute(
-        "SELECT r.id, title, ingredients, instructions, prep_minutes, created_at, user_id, username"
+        "SELECT r.id, r.title, r.ingredients, r.instructions, r.prep_minutes, r.created_at, r.user_id, u.username"
         " FROM recipes r JOIN users u ON r.user_id = u.id"
         " WHERE r.id = ?",
         (id,),

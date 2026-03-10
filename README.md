@@ -99,7 +99,6 @@ Ensure you're running with the --debug flag for auto-reload.
     * SQLite database with users and recipes tables
     * Bootstrap 5 responsive design with delete confirmation modal
     * Full CRUD functionality for recipes with owner protection
-    * Comprehensive documentation and troubleshooting guide
 * 0.1
     * Initial Release
  
@@ -111,5 +110,4 @@ This project is created for educational purposes in INF601 - Advanced Programmin
  
 * [Flask Documentation](https://flask.palletsprojects.com/)
 * [Bootstrap 5](https://getbootstrap.com/)
-* [Werkzeug Security](https://werkzeug.palletsprojects.com/en/2.3.x/security/)
 * [Flask Official Tutorial](https://flask.palletsprojects.com/en/2.3.x/tutorial/)

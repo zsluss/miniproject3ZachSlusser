@@ -5,11 +5,12 @@
  
 # Recipe Box
  
-A Flask web application for storing, sharing, and managing personal recipes with user authentication, database persistence, and a responsive Bootstrap interface.
+A Flask web application for storing, sharing, and managing personal recipes with user authentication.
  
 ## Description
  
-Recipe Box is a full-stack web application built with Flask that allows users to create an account, register, and manage their personal recipe collection. Users can view recipes added by all users, add their own recipes with ingredients and instructions, and delete recipes they have created. The application demonstrates core web development concepts including user authentication with secure password hashing, SQLite database management with foreign key relationships, and Bootstrap-based responsive design with interactive modals.
+Recipe Box is a full‑stack web app I built with Flask that lets users create an account and keep track of their own recipes. You can browse recipes from everyone, add your own with ingredients and instructions, and remove anything you’ve posted. Building it gave me a chance to work with core web development concepts like secure user authentication, SQLite with proper foreign key relationships, and a responsive Bootstrap layout with interactive components.
+This project has been on my mind for a long time because I’ve never found an affordable, simple way to store all the recipes I currently have on paper. I’m planning to keep improving it so I can access my collection from anywhere, not just at home. I added a note in solutions section about how to make it accessible to your LAN so that you can have the recipes on your phone while cooking.
  
 ## Getting Started
  
@@ -79,6 +80,21 @@ flask --app flaskr init-db
 ```
 Run Flask on a different port:
 flask --app flaskr --debug run --port 5001
+```
+
+**Accessing the app from another device on your LAN**
+```
+Start Flask so it listens on your network interface:
+flask --app flaskr --debug run --host 0.0.0.0 --port 5000
+
+Then open it from another device using your computer's local IP:
+http://<your-local-ip>:5000/
+
+Example:
+http://192.168.1.42:5000/
+
+If it still does not load, allow Python/Flask through Windows Firewall
+for Private networks.
 ```
 
 **Changes to code not showing up**

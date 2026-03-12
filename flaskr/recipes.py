@@ -7,6 +7,7 @@
 import functools
 
 from flask import (
+    abort,
     Blueprint,
     flash,
     g,
@@ -70,7 +71,7 @@ def create():
 @bp.route("/<int:id>/detail", methods=("GET",))
 def detail(id):
     """View recipe details."""
-    recipe = get_recipe(id)
+    recipe = get_recipe(id, check_author=False)
     return render_template("recipes/detail.html", recipe=recipe)
 
 
@@ -79,10 +80,6 @@ def detail(id):
 def delete(id):
     """Delete a recipe."""
     recipe = get_recipe(id)
-    
-    if recipe["user_id"] != g.user["id"]:
-        flash("You do not have permission to delete this recipe.")
-        return redirect(url_for("recipes.index"))
     
     db = get_db()
     db.execute("DELETE FROM recipes WHERE id = ?", (id,))
@@ -101,11 +98,9 @@ def get_recipe(id, check_author=True):
     ).fetchone()
 
     if recipe is None:
-        flash(f"Recipe not found.")
-        return redirect(url_for("recipes.index"))
+        abort(404, f"Recipe id {id} does not exist.")
 
     if check_author and recipe["user_id"] != g.user["id"]:
-        flash("You do not have permission to view this recipe.")
-        return redirect(url_for("recipes.index"))
+        abort(403)
 
     return recipe

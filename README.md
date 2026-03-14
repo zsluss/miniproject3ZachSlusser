@@ -26,10 +26,7 @@ This project has been on my mind for a long time because I’ve never found an a
 ### Installing
  
 1. Clone or download the project files to your local machine
-2. Navigate to the project directory:
-```
-cd "c:\Users\[YourUsername]\Documents\1 FHSU\INF601 - Python Advanced\Project_3"
-```
+2. Navigate to the project directory
 3. Create a virtual environment:
 ```
 python -m venv .venv

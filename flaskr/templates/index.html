@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="container mt-5">
-    <h1>Welcome to Recipe Box</h1>
+    <h1>Welcome to Shared Recipe Box</h1>
     {% if g.user %}
       <p>Hello, <strong>{{ g.user['username'] }}</strong>!</p>
       <a href="{{ url_for('recipes.index') }}" class="btn btn-primary">View Recipes</a>

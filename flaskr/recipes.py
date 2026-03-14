@@ -25,14 +25,30 @@ bp = Blueprint("recipes", __name__, url_prefix="/recipes")
 
 @bp.route("/")
 def index():
-    """Display all recipes."""
+    """Display all recipes or only the current user's recipes."""
+    show_mine = request.args.get("mine", "0") == "1"
+
+    if show_mine and g.user is None:
+        flash("Please log in to view your recipes.")
+        return redirect(url_for("auth.login"))
+
     db = get_db()
-    recipes = db.execute(
-        "SELECT r.id, r.title, r.ingredients, r.instructions, r.prep_minutes, r.created_at, r.user_id, u.username"
-        " FROM recipes r JOIN users u ON r.user_id = u.id"
-        " ORDER BY r.created_at DESC"
-    ).fetchall()
-    return render_template("recipes/index.html", recipes=recipes)
+    if show_mine:
+        recipes = db.execute(
+            "SELECT r.id, r.title, r.ingredients, r.instructions, r.prep_minutes, r.created_at, r.user_id, u.username"
+            " FROM recipes r JOIN users u ON r.user_id = u.id"
+            " WHERE r.user_id = ?"
+            " ORDER BY r.created_at DESC",
+            (g.user["id"],),
+        ).fetchall()
+    else:
+        recipes = db.execute(
+            "SELECT r.id, r.title, r.ingredients, r.instructions, r.prep_minutes, r.created_at, r.user_id, u.username"
+            " FROM recipes r JOIN users u ON r.user_id = u.id"
+            " ORDER BY r.created_at DESC"
+        ).fetchall()
+
+    return render_template("recipes/index.html", recipes=recipes, showing_mine=show_mine)
 
 
 @bp.route("/create", methods=("GET", "POST"))

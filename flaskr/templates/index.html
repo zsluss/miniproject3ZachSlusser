@@ -3,9 +3,16 @@
 {% block content %}
   <div class="container mt-5">
     <h1>Welcome to Shared Recipe Box</h1>
+    <div class="d-flex gap-2 mt-3 mb-3">
+      <a href="{{ url_for('recipes.index') }}" class="btn btn-primary">All Recipes</a>
+      {% if g.user %}
+        <a href="{{ url_for('recipes.index', mine=1) }}" class="btn btn-outline-primary">My Recipes</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">My Recipes</a>
+      {% endif %}
+    </div>
     {% if g.user %}
       <p>Hello, <strong>{{ g.user['username'] }}</strong>!</p>
-      <a href="{{ url_for('recipes.index') }}" class="btn btn-primary">View Recipes</a>
       <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
     {% else %}
       <p><a href="{{ url_for('auth.register') }}" class="btn btn-primary">Register</a> or <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a></p>

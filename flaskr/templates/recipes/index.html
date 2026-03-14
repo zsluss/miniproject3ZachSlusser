@@ -4,7 +4,13 @@
   <div class="container mt-5">
     <div class="row mb-3">
       <div class="col">
-        <h1>Recipes</h1>
+        <h1>{% if showing_mine %}My Recipes{% else %}Recipes{% endif %}</h1>
+        <div class="btn-group mt-2" role="group" aria-label="Recipe filters">
+          <a href="{{ url_for('recipes.index') }}" class="btn btn-sm {% if not showing_mine %}btn-primary{% else %}btn-outline-primary{% endif %}">All Recipes</a>
+          {% if g.user %}
+            <a href="{{ url_for('recipes.index', mine=1) }}" class="btn btn-sm {% if showing_mine %}btn-primary{% else %}btn-outline-primary{% endif %}">My Recipes</a>
+          {% endif %}
+        </div>
       </div>
       <div class="col text-end">
         {% if g.user %}

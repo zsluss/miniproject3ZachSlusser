@@ -2,7 +2,7 @@
 
 # Zach Slusser
 
-# Mini Project 3
+# Final Project
 
 import sqlite3
 from datetime import datetime

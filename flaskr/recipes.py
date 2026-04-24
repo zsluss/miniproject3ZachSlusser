@@ -2,7 +2,7 @@
 
 # Zach Slusser
 
-# Mini Project 3
+# Final Project
 
 import functools
 import json
@@ -68,7 +68,7 @@ def index():
         base_query += " AND (r.title LIKE ? OR r.ingredients LIKE ?)"
         params.extend([f"%{search_query}%", f"%{search_query}%"])
     
-    # Sort: favorites first (only for logged-in users), then by created_at DESC
+    # Logged-in users see their saved favorites floated to the top while keeping recent recipes grouped under
     if user_id:
         base_query += " ORDER BY is_favorited DESC, r.created_at DESC"
     else:
@@ -118,7 +118,7 @@ def detail(id):
     """View recipe details."""
     recipe = get_recipe(id, check_author=False)
     
-    # Check if current user has favorited this recipe
+    # Detail view uses a separate lookup so thatj the favorite button can function correctly
     is_favorited = False
     if g.user:
         db = get_db()
@@ -200,6 +200,7 @@ def random_recipe():
         filter_query = urllib.parse.urlencode({"c": selected_category})
         filter_url = f"https://www.themealdb.com/api/json/v1/1/filter.php?{filter_query}"
         try:
+            # Category filtering returns a lightweight meal list, then a specific meal can be loaded in full below.
             filtered_data = _fetch_json(filter_url)
             filtered_meals = filtered_data.get("meals") or []
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
@@ -216,6 +217,7 @@ def random_recipe():
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             flash("Could not load meal details right now.")
 
+    # This puts the seleceted meal at the top instead of a random meal with the selected meal at the bottom
     main_recipe = selected_meal or recipe
 
     return render_template(
@@ -277,13 +279,12 @@ def delete(id):
 @login_required
 def toggle_favorite(id):
     """Toggle favorite status for a recipe."""
-    # Verify recipe exists
+    # Reuse the standard recipe lookup so favorite actions don't mess up the loading but it lets users favorite others recipes
     recipe = get_recipe(id, check_author=False)
     
     db = get_db()
     user_id = g.user["id"]
     
-    # Check if already favorited
     existing = db.execute(
         "SELECT id FROM favorites WHERE user_id = ? AND recipe_id = ?",
         (user_id, id),
@@ -330,6 +331,7 @@ def _normalize_api_recipe(data):
             return None
         data = data[0]
 
+    # MealDB wraps results in a top-level meals list for most endpoints.
     if isinstance(data, dict) and "meals" in data and isinstance(data["meals"], list):
         if not data["meals"]:
             return None
@@ -370,6 +372,7 @@ def _build_mealdb_ingredients(data):
         ingredient = (data.get(f"strIngredient{index}") or "").strip()
         measure = (data.get(f"strMeasure{index}") or "").strip()
 
+        # MealDB splits ingredients across numbered fields, so rebuild them into a normal line-by-line list.
         if ingredient:
             lines.append(f"{measure} {ingredient}".strip())
 

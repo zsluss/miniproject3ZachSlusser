@@ -22,8 +22,8 @@
       </div>
       <div class="col text-end">
         {% if g.user %}
-          <a href="{{ url_for('recipes.random_recipe') }}" class="btn btn-outline-warning me-2">Want to try something new?</a>
-          <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
+          <a href="{{ url_for('recipes.create') }}" class="btn btn-success me-2">Add Your Own Recipe</a>
+          <a href="{{ url_for('recipes.random_recipe') }}" class="btn btn-outline-warning">Need a Random Meal Idea?</a>
         {% endif %}
       </div>
     </div>

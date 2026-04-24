@@ -2,11 +2,11 @@
 
 # Zach Slusser
 
-# Mini Project 3
+# Final Project
 
 import os
 
-from flask import Flask, render_template
+from flask import Flask, g, redirect, render_template, url_for
 
 
 def create_app(test_config=None):
@@ -31,6 +31,10 @@ def create_app(test_config=None):
     # home page
     @app.route('/')
     def index():
+        # Logged-in users land on the regular recipe dashboard, it was taking them to an empty page before
+        if g.get("user") is not None:
+            return redirect(url_for("recipes.index"))
+
         return render_template('index.html')
 
     from . import db

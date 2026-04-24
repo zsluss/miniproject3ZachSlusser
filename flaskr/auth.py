@@ -2,7 +2,7 @@
 
 # Zach Slusser
 
-# Mini Project 3
+# Final Project
 
 import functools
 import sqlite3
@@ -72,8 +72,9 @@ def login():
 
         if error is None:
             session.clear()
+            # Store the authenticated user's id in the session so can load proper
             session["user_id"] = user["id"]
-            return redirect(url_for("index"))
+            return redirect(url_for("recipes.index"))
 
         flash(error)
 
@@ -87,6 +88,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        # Fetch the current user 
         g.user = (
             get_db().execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         )

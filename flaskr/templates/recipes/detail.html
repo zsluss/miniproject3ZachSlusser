@@ -18,7 +18,18 @@
 
     <div class="mt-4">
       <a href="{{ url_for('recipes.index') }}" class="btn btn-secondary">Back to Recipes</a>
+      {% if g.user %}
+        <form method="POST" action="{{ url_for('recipes.toggle_favorite', id=recipe['id']) }}" style="display:inline;">
+          <button type="submit" class="btn {% if is_favorited %}btn-warning{% else %}btn-outline-warning{% endif %}">
+            {% if is_favorited %}★ Favorited{% else %}☆ Favorite{% endif %}
+          </button>
+        </form>
+      {% endif %}
+      {% if recipe['source_url'] %}
+        <a href="{{ recipe['source_url'] }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">View Source</a>
+      {% endif %}
       {% if g.user and g.user['id'] == recipe['user_id'] %}
+        <a href="{{ url_for('recipes.edit', id=recipe['id']) }}" class="btn btn-warning">Edit</a>
         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
       {% endif %}
     </div>

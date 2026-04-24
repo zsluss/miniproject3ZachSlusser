@@ -106,14 +106,24 @@ Ensure you're running with the --debug flag for auto-reload.
  
 ## Version History
  
+* 1.1
+    * Added favorites feature with star indicators on recipe cards
+    * Favorite recipes automatically appear at the top of recipe lists
+    * One-click favorite/unfavorite toggle button on recipe cards and detail pages
+    * Favorites persist across sessions for logged-in users
+    * New favorites table in database tracking user-recipe relationships
+
 * 1.0
     * Complete Recipe Box application with all rubric requirements
     * User authentication system with secure password hashing
     * SQLite database with users and recipes tables
     * Bootstrap 5 responsive design with delete confirmation modal
     * Full CRUD functionality for recipes with owner protection
-* 0.1
-    * Initial Release
+    * TheMealDB API integration for meal discovery
+    * Category filtering for random meal lookup
+    * Recipe search by title and ingredients
+    * Source URL support for external recipe links
+
  
 ## License
  

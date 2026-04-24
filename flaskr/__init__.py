@@ -15,6 +15,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        RANDOM_RECIPE_API_URL=os.environ.get('RANDOM_RECIPE_API_URL', ''),
     )
 
     if test_config is None:

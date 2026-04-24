@@ -21,6 +21,11 @@
         <label for="prep_minutes" class="form-label">Prep Time (minutes)</label>
         <input type="number" class="form-control" id="prep_minutes" name="prep_minutes" min="0" value="0">
       </div>
+      <div class="mb-3">
+        <label for="source_url" class="form-label">Source Link (optional)</label>
+        <input type="url" class="form-control" id="source_url" name="source_url" placeholder="https://example.com/recipe">
+        <div class="form-text">Leave blank if no source link is available.</div>
+      </div>
       <button type="submit" class="btn btn-primary">Add Recipe</button>
       <a href="{{ url_for('recipes.index') }}" class="btn btn-secondary">Cancel</a>
     </form>

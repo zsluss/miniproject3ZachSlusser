@@ -5,6 +5,14 @@
     <div class="row mb-3">
       <div class="col">
         <h1>{% if showing_mine %}My Recipes{% else %}Recipes{% endif %}</h1>
+        <form method="GET" action="{{ url_for('recipes.index') }}" class="d-flex gap-2 mt-2 mb-3">
+          <input type="hidden" name="mine" value="{{ '1' if showing_mine else '0' }}">
+          <input type="text" class="form-control" name="q" placeholder="Search recipes..." value="{{ search_query }}">
+          <button type="submit" class="btn btn-outline-primary">Search</button>
+          {% if search_query %}
+            <a href="{{ url_for('recipes.index', mine=('1' if showing_mine else '0')) }}" class="btn btn-outline-secondary">Clear</a>
+          {% endif %}
+        </form>
         <div class="btn-group mt-2" role="group" aria-label="Recipe filters">
           <a href="{{ url_for('recipes.index') }}" class="btn btn-sm {% if not showing_mine %}btn-primary{% else %}btn-outline-primary{% endif %}">All Recipes</a>
           {% if g.user %}
@@ -14,6 +22,7 @@
       </div>
       <div class="col text-end">
         {% if g.user %}
+          <a href="{{ url_for('recipes.random_recipe') }}" class="btn btn-outline-warning me-2">Want to try something new?</a>
           <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
         {% endif %}
       </div>
@@ -23,18 +32,32 @@
       <div class="row">
         {% for recipe in recipes %}
           <div class="col-md-4 mb-3">
-            <div class="card">
+            <div class="card {% if recipe['is_favorited'] %}border-warning{% endif %}">
               <div class="card-body">
-                <h5 class="card-title">{{ recipe['title'] }}</h5>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title flex-grow-1">{{ recipe['title'] }}</h5>
+                  {% if recipe['is_favorited'] %}
+                    <span class="badge bg-warning text-dark">★</span>
+                  {% endif %}
+                </div>
                 <p class="card-text">
                   <small class="text-muted">By {{ recipe['username'] }}</small><br>
                   <small class="text-muted">Prep: {{ recipe['prep_minutes'] }} min</small>
                 </p>
                 <p class="card-text">{{ recipe['ingredients'][:50] }}...</p>
-                <a href="{{ url_for('recipes.detail', id=recipe['id']) }}" class="btn btn-sm btn-primary">View</a>
-                {% if g.user and g.user['id'] == recipe['user_id'] %}
-                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ recipe['id'] }}">Delete</button>
-                {% endif %}
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('recipes.detail', id=recipe['id']) }}" class="btn btn-sm btn-primary">View</a>
+                  {% if g.user %}
+                    <form method="POST" action="{{ url_for('recipes.toggle_favorite', id=recipe['id']) }}" style="display:inline;">
+                      <button type="submit" class="btn btn-sm {% if recipe['is_favorited'] %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                        {% if recipe['is_favorited'] %}★ Favorited{% else %}☆ Favorite{% endif %}
+                      </button>
+                    </form>
+                  {% endif %}
+                  {% if g.user and g.user['id'] == recipe['user_id'] %}
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ recipe['id'] }}">Delete</button>
+                  {% endif %}
+                </div>
               </div>
             </div>
           </div>
@@ -62,7 +85,11 @@
         {% endfor %}
       </div>
     {% else %}
-      <p>No recipes yet. {% if g.user %}<a href="{{ url_for('recipes.create') }}">Create one!</a>{% else %}<a href="{{ url_for('auth.login') }}">Login</a> to add recipes.{% endif %}</p>
+      {% if search_query %}
+        <p>No recipes found matching "{{ search_query }}". <a href="{{ url_for('recipes.index', mine=('1' if showing_mine else '0')) }}">Clear search</a></p>
+      {% else %}
+        <p>No recipes yet. {% if g.user %}<a href="{{ url_for('recipes.create') }}">Create one!</a>{% else %}<a href="{{ url_for('auth.login') }}">Login</a> to add recipes.{% endif %}</p>
+      {% endif %}
     {% endif %}
   </div>
 {% endblock %}

@@ -10,7 +10,7 @@ A Flask web application for storing, sharing, and managing personal recipes with
 ## Description
  
 Recipe Box is a full‑stack web app I built with Flask that lets users create an account and keep track of their own recipes. You can browse recipes from everyone, add your own with ingredients and instructions, and remove anything you’ve posted. Building it gave me a chance to work with core web development concepts like secure user authentication, SQLite with proper foreign key relationships, and a responsive Bootstrap layout with interactive components.
-This project has been on my mind for a long time because I’ve never found an affordable, simple way to store all the recipes I currently have on paper. I’m planning to keep improving it so I can access my collection from anywhere, not just at home. I added a note in solutions section about how to make it accessible to your LAN so that you can have the recipes on your phone while cooking.
+The primary use for this is to run it on a local server for your family to share recipes on. It will show all of the recipes that your family adds to it but allows you to pull up just yours if you are trying to find something specific. I'd like to also add a grocery option to this as well.
  
 ## Getting Started
  
@@ -56,6 +56,11 @@ http://127.0.0.1:5000/
 ```
 4. Register a new account or login
 5. Create, view, and manage recipes from the dashboard
+6. If you are wanting to run this on a home server that can be accessed by all phones or computers on the network then you need to run
+'''
+flask --app flaskr --debug run --host 0.0.0.0 --port 5000
+'''
+
  
 ## Help
  

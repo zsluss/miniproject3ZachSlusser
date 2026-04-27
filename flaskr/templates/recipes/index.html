@@ -3,27 +3,35 @@
 {% block content %}
   <div class="container mt-5">
     <div class="row mb-3">
-      <div class="col">
+      <div class="col-12 col-lg">
         <h1>{% if showing_mine %}My Recipes{% else %}Recipes{% endif %}</h1>
-        <form method="GET" action="{{ url_for('recipes.index') }}" class="d-flex gap-2 mt-2 mb-3">
+        <form method="GET" action="{{ url_for('recipes.index') }}" class="row g-2 mt-2 mb-3">
           <input type="hidden" name="mine" value="{{ '1' if showing_mine else '0' }}">
-          <input type="text" class="form-control" name="q" placeholder="Search recipes..." value="{{ search_query }}">
-          <button type="submit" class="btn btn-outline-primary">Search</button>
+          <div class="col-12 col-sm">
+            <input type="text" class="form-control" name="q" placeholder="Search recipes..." value="{{ search_query }}">
+          </div>
+          <div class="col-12 col-sm-auto d-grid">
+            <button type="submit" class="btn btn-outline-primary">Search</button>
+          </div>
           {% if search_query %}
-            <a href="{{ url_for('recipes.index', mine=('1' if showing_mine else '0')) }}" class="btn btn-outline-secondary">Clear</a>
+            <div class="col-12 col-sm-auto d-grid">
+              <a href="{{ url_for('recipes.index', mine=('1' if showing_mine else '0')) }}" class="btn btn-outline-secondary">Clear</a>
+            </div>
           {% endif %}
         </form>
-        <div class="btn-group mt-2" role="group" aria-label="Recipe filters">
+        <div class="d-grid gap-2 d-sm-inline-flex mt-2" aria-label="Recipe filters">
           <a href="{{ url_for('recipes.index') }}" class="btn btn-sm {% if not showing_mine %}btn-primary{% else %}btn-outline-primary{% endif %}">All Recipes</a>
           {% if g.user %}
             <a href="{{ url_for('recipes.index', mine=1) }}" class="btn btn-sm {% if showing_mine %}btn-primary{% else %}btn-outline-primary{% endif %}">My Recipes</a>
           {% endif %}
         </div>
       </div>
-      <div class="col text-end">
+      <div class="col-12 col-lg-auto text-lg-end mt-3 mt-lg-0">
         {% if g.user %}
-          <a href="{{ url_for('recipes.create') }}" class="btn btn-success me-2">Add Your Own Recipe</a>
-          <a href="{{ url_for('recipes.random_recipe') }}" class="btn btn-outline-warning">Need a Random Meal Idea?</a>
+          <div class="d-grid gap-2 d-sm-flex justify-content-lg-end">
+            <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Your Own Recipe</a>
+            <a href="{{ url_for('recipes.random_recipe') }}" class="btn btn-outline-warning">Need a Random Meal Idea?</a>
+          </div>
         {% endif %}
       </div>
     </div>
@@ -45,7 +53,7 @@
                   <small class="text-muted">Prep: {{ recipe['prep_minutes'] }} min</small>
                 </p>
                 <p class="card-text">{{ recipe['ingredients'][:50] }}...</p>
-                <div class="d-flex gap-2">
+                <div class="d-grid gap-2 d-sm-flex">
                   <a href="{{ url_for('recipes.detail', id=recipe['id']) }}" class="btn btn-sm btn-primary">View</a>
                   {% if g.user %}
                     <form method="POST" action="{{ url_for('recipes.toggle_favorite', id=recipe['id']) }}" style="display:inline;">

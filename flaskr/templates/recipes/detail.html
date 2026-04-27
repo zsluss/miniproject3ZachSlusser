@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="mt-4">
+    <div class="d-grid gap-2 d-sm-flex mt-4">
       <a href="{{ url_for('recipes.index') }}" class="btn btn-secondary">Back to Recipes</a>
       {% if g.user %}
         <form method="POST" action="{{ url_for('recipes.toggle_favorite', id=recipe['id']) }}" style="display:inline;">

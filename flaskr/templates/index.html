@@ -3,7 +3,7 @@
 {% block content %}
   <div class="container mt-5">
     <h1>Welcome to Shared Recipe Box</h1>
-    <div class="d-flex gap-2 mt-3 mb-3">
+    <div class="d-grid gap-2 d-sm-flex mt-3 mb-3">
       <a href="{{ url_for('recipes.index') }}" class="btn btn-primary">All Recipes</a>
       {% if g.user %}
         <a href="{{ url_for('recipes.index', mine=1) }}" class="btn btn-outline-primary">My Recipes</a>
@@ -13,9 +13,14 @@
     </div>
     {% if g.user %}
       <p>Hello, <strong>{{ g.user['username'] }}</strong>!</p>
-      <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
+      <div class="d-grid d-sm-inline-block">
+        <a href="{{ url_for('recipes.create') }}" class="btn btn-success">Add Recipe</a>
+      </div>
     {% else %}
-      <p><a href="{{ url_for('auth.register') }}" class="btn btn-primary">Register</a> or <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a></p>
+      <div class="d-grid gap-2 d-sm-flex">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Register</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Login</a>
+      </div>
     {% endif %}
   </div>
 {% endblock %}

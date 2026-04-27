@@ -28,15 +28,15 @@
     </div>
 
     {% if main_recipe %}
-      <div class="card mb-4">
+      <div class="card random-main-card mb-4">
         <div class="card-body">
-          <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3 mb-2">
             {% if main_recipe.preview_image %}
-              <img src="{{ main_recipe.preview_image }}" alt="{{ main_recipe.title }}" class="rounded" width="100" height="100">
+              <img src="{{ main_recipe.preview_image }}" alt="{{ main_recipe.title }}" class="rounded random-main-thumb" width="100" height="100">
             {% endif %}
-            <h4 class="card-title mb-0">{{ main_recipe.title }}</h4>
+            <h4 class="card-title random-main-title mb-0">{{ main_recipe.title }}</h4>
           </div>
-          <p class="text-muted mb-1">
+          <p class="text-muted random-main-meta mb-1">
             {% if main_recipe.category %}Category: {{ main_recipe.category }}{% endif %}
             {% if main_recipe.category and main_recipe.area %} | {% endif %}
             {% if main_recipe.area %}Cuisine: {{ main_recipe.area }}{% endif %}
@@ -52,7 +52,7 @@
             <p class="card-text" style="white-space: pre-line;">{{ main_recipe.instructions }}</p>
           {% endif %}
 
-          <div class="d-grid gap-2 d-sm-flex flex-wrap mt-2">
+          <div class="d-grid gap-2 d-sm-flex flex-wrap mt-2 random-main-actions">
             {% if main_recipe.source_url %}
               <a href="{{ main_recipe.source_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">View Source</a>
             {% endif %}
@@ -79,14 +79,14 @@
         <div class="row">
           {% for meal in filtered_meals %}
             <div class="col-md-4 mb-3">
-              <div class="card h-100">
+              <div class="card random-meal-card h-100">
                 {% if meal.strMealThumb %}
-                  <img src="{{ meal.strMealThumb }}" class="card-img-top" alt="{{ meal.strMeal }}">
+                  <img src="{{ meal.strMealThumb }}" class="card-img-top random-meal-thumb" alt="{{ meal.strMeal }}">
                 {% endif %}
                 <div class="card-body d-flex flex-column">
                   <h5 class="card-title">{{ meal.strMeal }}</h5>
-                  <p class="text-muted mb-0">Meal ID: {{ meal.idMeal }}</p>
-                  <a href="{{ url_for('recipes.random_recipe', category=selected_category, meal_id=meal.idMeal) }}" class="btn btn-sm btn-outline-primary mt-3">Load Meal Details</a>
+                  <p class="text-muted mb-2">Meal ID: {{ meal.idMeal }}</p>
+                  <a href="{{ url_for('recipes.random_recipe', category=selected_category, meal_id=meal.idMeal) }}" class="btn btn-sm btn-outline-primary mt-auto">Load Meal Details</a>
                 </div>
               </div>
             </div>

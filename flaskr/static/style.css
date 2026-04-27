@@ -25,6 +25,42 @@ img {
   height: auto;
 }
 
+.recipe-card {
+  border-radius: 0.5rem;
+}
+
+.recipe-card .card-title,
+.random-meal-card .card-title {
+  line-height: 1.25;
+}
+
+.recipe-meta {
+  min-height: 2.5rem;
+}
+
+.recipe-snippet {
+  color: #495057;
+}
+
+.random-main-thumb {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.random-main-title {
+  line-height: 1.2;
+}
+
+.random-main-meta {
+  line-height: 1.4;
+}
+
+.random-meal-thumb {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
 @media (max-width: 767.98px) {
   main {
     padding-bottom: 1.5rem;
@@ -64,6 +100,42 @@ img {
 
   .card-title {
     line-height: 1.3;
+  }
+
+  .recipe-card .card-body {
+    gap: 0.15rem;
+  }
+
+  .recipe-meta {
+    min-height: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .recipe-snippet {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .random-main-thumb {
+    width: 100%;
+    height: auto;
+    max-height: 220px;
+    object-fit: cover;
+  }
+
+  .random-main-title {
+    font-size: 1.15rem;
+  }
+
+  .random-main-actions .btn,
+  .random-main-actions form,
+  .random-main-actions form .btn,
+  .random-meal-card .btn {
+    width: 100%;
+  }
+
+  .random-meal-thumb {
+    aspect-ratio: 16 / 10;
   }
 
   .modal-footer {

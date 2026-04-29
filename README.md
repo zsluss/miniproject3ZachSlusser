@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ```
 flask --app flaskr init-db
 ```
-2. Run the development server:
+2. Run the development server (local machine):
 ```
 flask --app flaskr --debug run
 ```
@@ -56,10 +56,24 @@ http://127.0.0.1:5000/
 ```
 4. Register a new account or login
 5. Create, view, and manage recipes from the dashboard
-6. If you are wanting to run this on a home server that can be accessed by all phones or computers on the network then you need to run
-'''
+6. To access the app from other devices on your home network, run:
+```
 flask --app flaskr --debug run --host 0.0.0.0 --port 5000
-'''
+```
+7. Then open it from another device using your local IPv4 address:
+```
+http://<your-local-ip>:5000/
+```
+
+## UX Improvements
+
+To address responsive design and user experience feedback, I implemented the following updates:
+
+* Mobile-first action layout: key button groups now stack on smaller screens and align horizontally on larger screens.
+* Improved form usability on phones: search, filter, and submit/cancel controls reflow cleanly with touch-friendly spacing.
+* Better card readability: recipe and random meal cards now have improved text density, spacing, and action placement for narrow screens.
+* Responsive media behavior: images scale more consistently and featured random meal content adapts for portrait and landscape orientation.
+* Small-screen polish with media queries: typography, spacing, modal actions, and content padding adjust at mobile breakpoints.
 
  
 ## Help

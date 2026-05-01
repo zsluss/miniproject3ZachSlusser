@@ -39,11 +39,16 @@ def create_app(test_config=None):
 
     from . import db
     db.init_app(app)
+    with app.app_context():
+        db.ensure_schema_updates()
 
     from . import auth
     app.register_blueprint(auth.bp)
 
     from . import recipes
     app.register_blueprint(recipes.bp)
+
+    from . import grocery
+    app.register_blueprint(grocery.bp)
 
     return app

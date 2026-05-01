@@ -61,6 +61,21 @@ img {
   object-fit: cover;
 }
 
+.grocery-item-card {
+  border-left: 4px solid #198754;
+}
+
+.grocery-item-name {
+  font-weight: 600;
+}
+
+.grocery-empty {
+  background: #ffffff;
+  border: 1px dashed #ced4da;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
 @media (max-width: 767.98px) {
   main {
     padding-bottom: 1.5rem;
@@ -136,6 +151,12 @@ img {
 
   .random-meal-thumb {
     aspect-ratio: 16 / 10;
+  }
+
+  .grocery-item-actions .btn,
+  .grocery-item-actions form,
+  .grocery-item-actions form .btn {
+    width: 100%;
   }
 
   .modal-footer {

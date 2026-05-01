@@ -38,6 +38,41 @@ def init_db():
         db.executescript(f.read().decode('utf8'))
 
 
+def ensure_schema_updates():
+    """Create newer tables/indexes if they are missing in an existing DB."""
+    db = get_db()
+
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            recipe_id INTEGER NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (recipe_id) REFERENCES recipes (id) ON DELETE CASCADE,
+            UNIQUE(user_id, recipe_id)
+        )
+        """
+    )
+    db.execute("CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites (user_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_favorites_recipe_id ON favorites (recipe_id)")
+
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS grocery_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            item_name TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )
+        """
+    )
+    db.execute("CREATE INDEX IF NOT EXISTS idx_grocery_items_user_id ON grocery_items (user_id)")
+    db.commit()
+
+
 @click.command('init-db')
 def init_db_command():
     """Clear the existing data and create new tables."""

@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS grocery_items;
+DROP TABLE IF EXISTS favorites;
 DROP TABLE IF EXISTS recipes;
 DROP TABLE IF EXISTS users;
 
@@ -34,3 +36,13 @@ CREATE TABLE favorites (
 
 CREATE INDEX idx_favorites_user_id ON favorites (user_id);
 CREATE INDEX idx_favorites_recipe_id ON favorites (recipe_id);
+
+CREATE TABLE grocery_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_grocery_items_user_id ON grocery_items (user_id);

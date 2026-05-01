@@ -38,19 +38,24 @@ def index():
 @login_required
 def add():
     """Add an item to the current user's grocery list."""
-    item_name = request.form.get("item_name", "").strip()
+    raw_item_text = request.form.get("item_name", "").strip()
+    items_to_add = [item.strip() for item in raw_item_text.split(",") if item.strip()]
 
-    if not item_name:
+    if not items_to_add:
         flash("Please enter a grocery item before adding.")
         return redirect(url_for("grocery.index"))
 
     db = get_db()
-    db.execute(
-        "INSERT INTO grocery_items (user_id, item_name, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
-        (g.user["id"], item_name),
-    )
+    for item_name in items_to_add:
+        db.execute(
+            "INSERT INTO grocery_items (user_id, item_name, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+            (g.user["id"], item_name),
+        )
     db.commit()
-    flash(f"Added '{item_name}' to your grocery list.")
+    if len(items_to_add) == 1:
+        flash(f"Added '{items_to_add[0]}' to your grocery list.")
+    else:
+        flash(f"Added {len(items_to_add)} items to your grocery list.")
     return redirect(url_for("grocery.index"))
 
 

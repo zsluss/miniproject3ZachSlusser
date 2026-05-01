@@ -69,6 +69,35 @@ img {
   font-weight: 600;
 }
 
+.grocery-item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.grocery-amount-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.grocery-amount-form .form-control {
+  width: 6.25rem;
+}
+
+.grocery-zone-form .form-select {
+  min-width: 13rem;
+}
+
+.grocery-item-actions .btn {
+  white-space: nowrap;
+}
+
+.shopping-item-actions .btn {
+  white-space: nowrap;
+}
+
 .grocery-empty {
   background: #ffffff;
   border: 1px dashed #ced4da;
@@ -153,10 +182,53 @@ img {
     aspect-ratio: 16 / 10;
   }
 
-  .grocery-item-actions .btn,
   .grocery-item-actions form,
-  .grocery-item-actions form .btn {
+  .shopping-item-actions form,
+  .grocery-zone-form {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .grocery-item-name-row {
+    gap: 0.35rem;
+  }
+
+  .grocery-amount-form .form-control {
+    width: 5rem;
+    font-size: 0.82rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .grocery-amount-form .btn {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .grocery-item-actions .btn,
+  .shopping-item-actions .btn,
+  .grocery-zone-form .btn {
+    width: auto;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .grocery-zone-form .form-select {
+    min-width: 0;
     width: 100%;
+    font-size: 0.85rem;
+    padding: 0.4rem 1.8rem 0.4rem 0.55rem;
+  }
+
+  .grocery-item-name {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .grocery-item-card small {
+    font-size: 0.72rem;
+    line-height: 1.2;
   }
 
   .modal-footer {

@@ -64,12 +64,39 @@ def ensure_schema_updates():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             item_name TEXT NOT NULL,
+            amount TEXT,
+            zone TEXT NOT NULL DEFAULT 'Other',
+            found_at TIMESTAMP,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """
     )
     db.execute("CREATE INDEX IF NOT EXISTS idx_grocery_items_user_id ON grocery_items (user_id)")
+
+    grocery_columns = {
+        row["name"]
+        for row in db.execute("PRAGMA table_info(grocery_items)").fetchall()
+    }
+    if "zone" not in grocery_columns:
+        db.execute("ALTER TABLE grocery_items ADD COLUMN zone TEXT NOT NULL DEFAULT 'Other'")
+    if "amount" not in grocery_columns:
+        db.execute("ALTER TABLE grocery_items ADD COLUMN amount TEXT")
+    if "found_at" not in grocery_columns:
+        db.execute("ALTER TABLE grocery_items ADD COLUMN found_at TIMESTAMP")
+
+    db.execute("UPDATE grocery_items SET zone = 'Other' WHERE zone IS NULL OR TRIM(zone) = ''")
+
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS grocery_item_zone_memory (
+            normalized_item TEXT PRIMARY KEY,
+            zone TEXT NOT NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
     db.commit()
 
 

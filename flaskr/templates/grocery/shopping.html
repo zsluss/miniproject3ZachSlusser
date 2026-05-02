@@ -14,6 +14,7 @@
               <button type="submit" class="btn btn-outline-warning">Undo Last Found It</button>
             </form>
           {% endif %}
+          <a href="{{ url_for('grocery.settings') }}" class="btn btn-outline-dark">Settings</a>
           <a href="{{ url_for('grocery.index') }}" class="btn btn-outline-primary">Open Grocery Planner</a>
           <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-secondary">Back to Recipes</a>
         </div>

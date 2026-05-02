@@ -4,8 +4,11 @@
 
 # Final Project
 
+import os
+
 from flask import (
     Blueprint,
+    current_app,
     flash,
     g,
     redirect,
@@ -97,6 +100,27 @@ def _fetch_active_items():
     ).fetchall()
 
 
+def _get_settings_snapshot():
+    """Return basic grocery and database stats for the settings page."""
+    db = get_db()
+    active_count = db.execute(
+        "SELECT COUNT(*) AS count FROM grocery_items WHERE found_at IS NULL"
+    ).fetchone()["count"]
+    found_count = db.execute(
+        "SELECT COUNT(*) AS count FROM grocery_items WHERE found_at IS NOT NULL"
+    ).fetchone()["count"]
+
+    database_path = current_app.config.get("DATABASE", "")
+    database_size_bytes = os.path.getsize(database_path) if database_path and os.path.exists(database_path) else 0
+
+    return {
+        "active_count": active_count,
+        "found_count": found_count,
+        "database_size_bytes": database_size_bytes,
+        "database_size_mb": round(database_size_bytes / (1024 * 1024), 2),
+    }
+
+
 @bp.route("/", methods=("GET",))
 @login_required
 def index():
@@ -122,6 +146,44 @@ def shopping():
         items=items,
         last_found_item=last_found_item,
     )
+
+
+@bp.route("/settings", methods=("GET",))
+@login_required
+def settings():
+    """Display grocery maintenance tools and database stats."""
+    return render_template("grocery/settings.html", stats=_get_settings_snapshot())
+
+
+@bp.route("/settings/purge-found", methods=("POST",))
+@login_required
+def purge_found_items():
+    """Delete found grocery items older than the requested number of days."""
+    days = request.form.get("days", default=90, type=int)
+    if days is None or days < 1 or days > 3650:
+        flash("Please choose a valid number of days between 1 and 3650.")
+        return redirect(url_for("grocery.settings"))
+
+    db = get_db()
+    deleted = db.execute(
+        "DELETE FROM grocery_items WHERE found_at IS NOT NULL AND found_at < datetime('now', ?)",
+        (f"-{days} days",),
+    ).rowcount
+    db.commit()
+
+    flash(f"Deleted {deleted} found item(s) older than {days} day(s).")
+    return redirect(url_for("grocery.settings"))
+
+
+@bp.route("/settings/compact", methods=("POST",))
+@login_required
+def compact_database():
+    """Run VACUUM to compact the SQLite database file after cleanup."""
+    db = get_db()
+    db.commit()
+    db.execute("VACUUM")
+    flash("Database compacted successfully.")
+    return redirect(url_for("grocery.settings"))
 
 
 @bp.route("/add", methods=("POST",))

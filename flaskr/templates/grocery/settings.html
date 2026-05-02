@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row g-3 align-items-end mb-4">
+      <div class="col-12 col-lg">
+        <h1>Grocery Settings</h1>
+        <p class="text-muted mb-0">Maintenance tools to keep grocery history tidy and the database compact over time.</p>
+      </div>
+      <div class="col-12 col-lg-auto text-lg-end">
+        <div class="d-grid gap-2 d-sm-flex justify-content-lg-end">
+          <a href="{{ url_for('grocery.index') }}" class="btn btn-outline-primary">Open Grocery Planner</a>
+          <a href="{{ url_for('grocery.shopping') }}" class="btn btn-outline-success">Open Shopping List</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Active Items</h6>
+            <p class="display-6 mb-0">{{ stats['active_count'] }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Found History Items</h6>
+            <p class="display-6 mb-0">{{ stats['found_count'] }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Database Size</h6>
+            <p class="display-6 mb-0">{{ stats['database_size_mb'] }} MB</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Purge Old Found Items</h5>
+        <p class="text-muted mb-3">Delete completed/found items older than a chosen number of days.</p>
+        <form method="POST" action="{{ url_for('grocery.purge_found_items') }}" class="row g-2 align-items-end">
+          <div class="col-12 col-md-3">
+            <label for="days" class="form-label">Older Than (Days)</label>
+            <input type="number" min="1" max="3650" value="90" class="form-control" id="days" name="days" required>
+          </div>
+          <div class="col-12 col-md-auto d-grid">
+            <button type="submit" class="btn btn-outline-danger">Purge Old Found Items</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5>Compact Database</h5>
+        <p class="text-muted mb-3">Run SQLite VACUUM to reclaim space after cleanup operations.</p>
+        <form method="POST" action="{{ url_for('grocery.compact_database') }}">
+          <button type="submit" class="btn btn-outline-secondary">Compact Database Now</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

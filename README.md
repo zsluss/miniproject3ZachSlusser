@@ -65,6 +65,31 @@ flask --app flaskr --debug run --host 0.0.0.0 --port 5000
 http://<your-local-ip>:5000/
 ```
 
+### Running with Docker
+
+If you prefer not to install dependencies locally, you can run Recipe Box in Docker.
+
+1. Build the image from the project root:
+```
+docker build -t recipeapp .
+```
+2. Initialize the database (first time only):
+```
+docker run --rm -v "$(pwd)/instance:/app/instance" recipeapp flask --app flaskr init-db
+```
+3. Start the container:
+```
+docker run --rm -p 5000:5000 -v "$(pwd)/instance:/app/instance" recipeapp
+```
+4. Open your browser:
+```
+http://127.0.0.1:5000/
+```
+
+Notes:
+* The volume mount keeps your SQLite database in the local `instance/` folder so data persists between container runs.
+* Exported image archives like `recipeapp.tar` are build artifacts and should remain gitignored.
+
 ## UX Improvements
 
 To address responsive design and user experience feedback, I implemented the following updates:

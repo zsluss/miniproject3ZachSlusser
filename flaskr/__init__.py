@@ -5,6 +5,7 @@
 # Final Project
 
 import os
+from datetime import timedelta
 
 from flask import Flask, g, redirect, render_template, url_for
 
@@ -16,6 +17,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
         RANDOM_RECIPE_API_URL=os.environ.get('RANDOM_RECIPE_API_URL', ''),
+        SESSION_PERMANENT=True,
+        PERMANENT_SESSION_LIFETIME=timedelta(days=30),
     )
 
     if test_config is None:

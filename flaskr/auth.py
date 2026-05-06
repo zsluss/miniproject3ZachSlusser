@@ -85,6 +85,7 @@ def login():
         if error is None:
             session.clear()
             # Store the authenticated user's id in the session so can load proper
+            session.permanent = True
             session["user_id"] = user["id"]
             return redirect(url_for("recipes.index"))
 

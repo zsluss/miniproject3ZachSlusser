@@ -35,6 +35,67 @@ GROCERY_ZONES = [
 ]
 
 
+def _get_current_group_id(db):
+    """Return the current user's grocery group id, creating a personal one if needed."""
+    user = db.execute(
+        "SELECT id, grocery_group_id FROM users WHERE id = ?",
+        (g.user["id"],),
+    ).fetchone()
+
+    if user is None:
+        return None
+
+    group_id = user["grocery_group_id"] or user["id"]
+    if user["grocery_group_id"] is None:
+        db.execute(
+            "UPDATE users SET grocery_group_id = ? WHERE id = ?",
+            (group_id, user["id"]),
+        )
+        db.commit()
+
+    return group_id
+
+
+def _merge_grocery_groups(db, first_group_id, second_group_id):
+    """Merge two grocery groups so every member shares one list."""
+    target_group_id = min(first_group_id, second_group_id)
+    db.execute(
+        "UPDATE users SET grocery_group_id = ? WHERE grocery_group_id IN (?, ?)",
+        (target_group_id, first_group_id, second_group_id),
+    )
+
+
+def _fetch_pending_requests(db):
+    """Return incoming and outgoing pending share requests for settings."""
+    incoming = db.execute(
+        "SELECT gsr.id, gsr.created_at, requester.username AS requester_username"
+        " FROM grocery_share_requests gsr"
+        " JOIN users requester ON requester.id = gsr.requester_id"
+        " WHERE gsr.recipient_id = ? AND gsr.status = 'pending'"
+        " ORDER BY gsr.created_at DESC, gsr.id DESC",
+        (g.user["id"],),
+    ).fetchall()
+
+    outgoing = db.execute(
+        "SELECT gsr.id, gsr.created_at, recipient.username AS recipient_username"
+        " FROM grocery_share_requests gsr"
+        " JOIN users recipient ON recipient.id = gsr.recipient_id"
+        " WHERE gsr.requester_id = ? AND gsr.status = 'pending'"
+        " ORDER BY gsr.created_at DESC, gsr.id DESC",
+        (g.user["id"],),
+    ).fetchall()
+
+    return incoming, outgoing
+
+
+def _get_group_members(db, group_id):
+    """Return usernames in the active grocery sharing group."""
+    return db.execute(
+        "SELECT username FROM users WHERE grocery_group_id = ? ORDER BY username COLLATE NOCASE",
+        (group_id,),
+    ).fetchall()
+
+
 def _normalize_item_name(item_name):
     """Normalize grocery names so case and extra spacing don't create duplicates."""
     return " ".join(item_name.strip().split()).casefold()
@@ -85,8 +146,8 @@ def _get_learned_zone_for_item(db, item_name):
     return "Other"
 
 
-def _fetch_active_items():
-    """Return unfound grocery items grouped by configured zone order."""
+def _fetch_active_items(group_id):
+    """Return unfound grocery items for the active sharing group."""
     zone_order = " ".join(
         [f"WHEN ? THEN {index}" for index, _ in enumerate(GROCERY_ZONES)]
     )
@@ -94,20 +155,30 @@ def _fetch_active_items():
         "SELECT gi.id, gi.user_id, gi.item_name, gi.amount, gi.zone, gi.created_at, u.username"
         " FROM grocery_items gi"
         " JOIN users u ON gi.user_id = u.id"
+        " JOIN users owner ON owner.id = gi.user_id"
         " WHERE gi.found_at IS NULL"
+        " AND owner.grocery_group_id = ?"
         f" ORDER BY CASE gi.zone {zone_order} ELSE 999 END ASC, gi.created_at ASC, gi.id ASC",
-        tuple(GROCERY_ZONES),
+        (group_id, *GROCERY_ZONES),
     ).fetchall()
 
 
-def _get_settings_snapshot():
-    """Return basic grocery and database stats for the settings page."""
+def _get_settings_snapshot(group_id):
+    """Return grocery and database stats for the current sharing group."""
     db = get_db()
     active_count = db.execute(
-        "SELECT COUNT(*) AS count FROM grocery_items WHERE found_at IS NULL"
+        "SELECT COUNT(*) AS count"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.found_at IS NULL AND u.grocery_group_id = ?",
+        (group_id,),
     ).fetchone()["count"]
     found_count = db.execute(
-        "SELECT COUNT(*) AS count FROM grocery_items WHERE found_at IS NOT NULL"
+        "SELECT COUNT(*) AS count"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.found_at IS NOT NULL AND u.grocery_group_id = ?",
+        (group_id,),
     ).fetchone()["count"]
 
     database_path = current_app.config.get("DATABASE", "")
@@ -124,8 +195,10 @@ def _get_settings_snapshot():
 @bp.route("/", methods=("GET",))
 @login_required
 def index():
-    """Display the shared editable grocery planner for all logged-in users."""
-    items = _fetch_active_items()
+    """Display the grocery planner for the current sharing group."""
+    db = get_db()
+    group_id = _get_current_group_id(db)
+    items = _fetch_active_items(group_id)
     last_removed_item = session.get("last_removed_grocery_item")
     return render_template(
         "grocery/index.html",
@@ -138,8 +211,10 @@ def index():
 @bp.route("/shopping", methods=("GET",))
 @login_required
 def shopping():
-    """Display the shared in-store shopping view with only Found It actions."""
-    items = _fetch_active_items()
+    """Display in-store shopping view for the current sharing group."""
+    db = get_db()
+    group_id = _get_current_group_id(db)
+    items = _fetch_active_items(group_id)
     last_found_item = session.get("last_found_grocery_item")
     return render_template(
         "grocery/shopping.html",
@@ -151,8 +226,131 @@ def shopping():
 @bp.route("/settings", methods=("GET",))
 @login_required
 def settings():
-    """Display grocery maintenance tools and database stats."""
-    return render_template("grocery/settings.html", stats=_get_settings_snapshot())
+    """Display grocery maintenance tools and sharing settings."""
+    db = get_db()
+    group_id = _get_current_group_id(db)
+    incoming_requests, outgoing_requests = _fetch_pending_requests(db)
+    group_members = _get_group_members(db, group_id)
+    return render_template(
+        "grocery/settings.html",
+        stats=_get_settings_snapshot(group_id),
+        incoming_requests=incoming_requests,
+        outgoing_requests=outgoing_requests,
+        group_members=group_members,
+    )
+
+
+@bp.route("/settings/share-request", methods=("POST",))
+@login_required
+def create_share_request():
+    """Send a grocery sharing request to another username."""
+    target_username = request.form.get("target_username", "").strip()
+    if not target_username:
+        flash("Enter a username to invite.")
+        return redirect(url_for("grocery.settings"))
+
+    db = get_db()
+    current_group_id = _get_current_group_id(db)
+
+    target_user = db.execute(
+        "SELECT id, username, grocery_group_id FROM users WHERE username = ? COLLATE NOCASE",
+        (target_username,),
+    ).fetchone()
+
+    if target_user is None:
+        flash("That username was not found.")
+        return redirect(url_for("grocery.settings"))
+
+    if target_user["id"] == g.user["id"]:
+        flash("You cannot invite yourself.")
+        return redirect(url_for("grocery.settings"))
+
+    target_group_id = target_user["grocery_group_id"] or target_user["id"]
+    if target_group_id == current_group_id:
+        flash(f"You are already sharing a grocery list with {target_user['username']}.")
+        return redirect(url_for("grocery.settings"))
+
+    existing_pending = db.execute(
+        "SELECT id FROM grocery_share_requests"
+        " WHERE status = 'pending'"
+        " AND ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))",
+        (g.user["id"], target_user["id"], target_user["id"], g.user["id"]),
+    ).fetchone()
+    if existing_pending is not None:
+        flash("A pending grocery share request already exists between you and that user.")
+        return redirect(url_for("grocery.settings"))
+
+    db.execute(
+        "INSERT INTO grocery_share_requests (requester_id, recipient_id, status) VALUES (?, ?, 'pending')",
+        (g.user["id"], target_user["id"]),
+    )
+    db.commit()
+    flash(f"Share request sent to {target_user['username']}.")
+    return redirect(url_for("grocery.settings"))
+
+
+@bp.route("/settings/share-request/<int:request_id>/respond", methods=("POST",))
+@login_required
+def respond_share_request(request_id):
+    """Accept or decline a pending grocery share request."""
+    decision = request.form.get("decision", "").strip().lower()
+    if decision not in {"accept", "decline"}:
+        flash("Choose accept or decline.")
+        return redirect(url_for("grocery.settings"))
+
+    db = get_db()
+    share_request = db.execute(
+        "SELECT id, requester_id, recipient_id"
+        " FROM grocery_share_requests"
+        " WHERE id = ? AND recipient_id = ? AND status = 'pending'",
+        (request_id, g.user["id"]),
+    ).fetchone()
+
+    if share_request is None:
+        flash("That request is no longer available.")
+        return redirect(url_for("grocery.settings"))
+
+    requester = db.execute(
+        "SELECT id, grocery_group_id, username FROM users WHERE id = ?",
+        (share_request["requester_id"],),
+    ).fetchone()
+    recipient = db.execute(
+        "SELECT id, grocery_group_id FROM users WHERE id = ?",
+        (share_request["recipient_id"],),
+    ).fetchone()
+
+    if decision == "accept" and requester is not None and recipient is not None:
+        requester_group_id = requester["grocery_group_id"] or requester["id"]
+        recipient_group_id = recipient["grocery_group_id"] or recipient["id"]
+        _merge_grocery_groups(db, requester_group_id, recipient_group_id)
+        db.execute(
+            "UPDATE grocery_share_requests SET status = 'accepted', responded_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (share_request["id"],),
+        )
+        db.execute(
+            "UPDATE grocery_share_requests"
+            " SET status = 'declined', responded_at = CURRENT_TIMESTAMP"
+            " WHERE status = 'pending' AND id != ?"
+            " AND ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))",
+            (
+                share_request["id"],
+                share_request["requester_id"],
+                share_request["recipient_id"],
+                share_request["recipient_id"],
+                share_request["requester_id"],
+            ),
+        )
+        db.commit()
+        flash(f"You are now sharing a grocery list with {requester['username']}.")
+        return redirect(url_for("grocery.settings"))
+
+    db.execute(
+        "UPDATE grocery_share_requests SET status = 'declined', responded_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (share_request["id"],),
+    )
+    db.commit()
+    flash("Grocery share request declined.")
+    return redirect(url_for("grocery.settings"))
 
 
 @bp.route("/settings/purge-found", methods=("POST",))
@@ -165,9 +363,13 @@ def purge_found_items():
         return redirect(url_for("grocery.settings"))
 
     db = get_db()
+    group_id = _get_current_group_id(db)
     deleted = db.execute(
-        "DELETE FROM grocery_items WHERE found_at IS NOT NULL AND found_at < datetime('now', ?)",
-        (f"-{days} days",),
+        "DELETE FROM grocery_items"
+        " WHERE found_at IS NOT NULL"
+        " AND found_at < datetime('now', ?)"
+        " AND user_id IN (SELECT id FROM users WHERE grocery_group_id = ?)",
+        (f"-{days} days", group_id),
     ).rowcount
     db.commit()
 
@@ -224,9 +426,13 @@ def update_zone(id):
         return redirect(url_for("grocery.index"))
 
     db = get_db()
+    group_id = _get_current_group_id(db)
     item = db.execute(
-        "SELECT id, item_name FROM grocery_items WHERE id = ?",
-        (id,),
+        "SELECT gi.id, gi.item_name"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.id = ? AND u.grocery_group_id = ?",
+        (id, group_id),
     ).fetchone()
 
     if item is None:
@@ -248,9 +454,13 @@ def update_amount(id):
     amount = amount_text or None
 
     db = get_db()
+    group_id = _get_current_group_id(db)
     item = db.execute(
-        "SELECT id, item_name FROM grocery_items WHERE id = ?",
-        (id,),
+        "SELECT gi.id, gi.item_name"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.id = ? AND u.grocery_group_id = ?",
+        (id, group_id),
     ).fetchone()
 
     if item is None:
@@ -268,9 +478,13 @@ def update_amount(id):
 def remove(id):
     """Delete an item from the shared editable grocery planner."""
     db = get_db()
+    group_id = _get_current_group_id(db)
     item = db.execute(
-        "SELECT id, user_id, item_name, amount, zone FROM grocery_items WHERE id = ?",
-        (id,),
+        "SELECT gi.id, gi.user_id, gi.item_name, gi.amount, gi.zone"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.id = ? AND u.grocery_group_id = ?",
+        (id, group_id),
     ).fetchone()
 
     if item is None:
@@ -294,9 +508,13 @@ def remove(id):
 def mark_found(id):
     """Mark a grocery item as found during shopping."""
     db = get_db()
+    group_id = _get_current_group_id(db)
     item = db.execute(
-        "SELECT id, item_name FROM grocery_items WHERE id = ?",
-        (id,),
+        "SELECT gi.id, gi.item_name"
+        " FROM grocery_items gi"
+        " JOIN users u ON u.id = gi.user_id"
+        " WHERE gi.id = ? AND u.grocery_group_id = ?",
+        (id, group_id),
     ).fetchone()
 
     if item is None:
@@ -324,9 +542,12 @@ def undo_found():
         return redirect(url_for("grocery.shopping"))
 
     db = get_db()
+    group_id = _get_current_group_id(db)
     updated = db.execute(
-        "UPDATE grocery_items SET found_at = NULL WHERE id = ?",
-        (last_found_item["id"],),
+        "UPDATE grocery_items SET found_at = NULL"
+        " WHERE id = ?"
+        " AND user_id IN (SELECT id FROM users WHERE grocery_group_id = ?)",
+        (last_found_item["id"], group_id),
     )
     db.commit()
 
@@ -350,6 +571,16 @@ def undo_remove():
         return redirect(url_for("grocery.index"))
 
     db = get_db()
+    group_id = _get_current_group_id(db)
+    owner_is_in_group = db.execute(
+        "SELECT 1 FROM users WHERE id = ? AND grocery_group_id = ?",
+        (last_removed_item["user_id"], group_id),
+    ).fetchone()
+    if owner_is_in_group is None:
+        flash("That item can no longer be restored in your current shared list.")
+        session.pop("last_removed_grocery_item", None)
+        return redirect(url_for("grocery.index"))
+
     db.execute(
         "INSERT INTO grocery_items (user_id, item_name, amount, zone, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
         (
@@ -368,9 +599,13 @@ def undo_remove():
 @bp.route("/clear", methods=("POST",))
 @login_required
 def clear():
-    """Remove all items from the shared grocery list."""
+    """Remove all items from the current grocery sharing group."""
     db = get_db()
-    db.execute("DELETE FROM grocery_items")
+    group_id = _get_current_group_id(db)
+    db.execute(
+        "DELETE FROM grocery_items WHERE user_id IN (SELECT id FROM users WHERE grocery_group_id = ?)",
+        (group_id,),
+    )
     db.commit()
-    flash("Cleared the shared grocery list.")
+    flash("Cleared your shared grocery list.")
     return redirect(url_for("grocery.index"))

@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS grocery_items;
 DROP TABLE IF EXISTS grocery_item_zone_memory;
+DROP TABLE IF EXISTS grocery_share_requests;
 DROP TABLE IF EXISTS favorites;
 DROP TABLE IF EXISTS recipes;
 DROP TABLE IF EXISTS users;
@@ -8,8 +9,27 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    grocery_group_id INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_users_grocery_group_id ON users (grocery_group_id);
+
+CREATE TABLE grocery_share_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requester_id INTEGER NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP,
+    FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE CASCADE,
+    CHECK (status IN ('pending', 'accepted', 'declined')),
+    CHECK (requester_id <> recipient_id)
+);
+
+CREATE INDEX idx_grocery_share_requests_recipient_status ON grocery_share_requests (recipient_id, status);
+CREATE INDEX idx_grocery_share_requests_requester_status ON grocery_share_requests (requester_id, status);
 
 CREATE TABLE recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,3 +76,5 @@ CREATE TABLE grocery_item_zone_memory (
     zone TEXT NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+UPDATE users SET grocery_group_id = id WHERE grocery_group_id IS NULL;

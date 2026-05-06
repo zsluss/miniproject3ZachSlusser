@@ -37,11 +37,23 @@ def register():
         elif not password:
             error = "Password is required."
 
+        # Enforce case-insensitive username uniqueness.
+        if error is None:
+            existing_user = db.execute(
+                "SELECT id FROM users WHERE username = ? COLLATE NOCASE",
+                (username,),
+            ).fetchone()
+            if existing_user is not None:
+                error = f"User {username} is already registered."
+
         if error is None:
             try:
                 db.execute(
                     "INSERT INTO users (username, password) VALUES (?, ?)",
                     (username, generate_password_hash(password)),
+                )
+                db.execute(
+                    "UPDATE users SET grocery_group_id = id WHERE id = last_insert_rowid()"
                 )
                 db.commit()
             except sqlite3.IntegrityError:
@@ -62,7 +74,7 @@ def login():
         db = get_db()
         error = None
         user = db.execute(
-            "SELECT * FROM users WHERE username = ?", (username,)
+            "SELECT * FROM users WHERE username = ? COLLATE NOCASE", (username,)
         ).fetchone()
 
         if user is None:

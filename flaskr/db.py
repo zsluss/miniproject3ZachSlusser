@@ -42,6 +42,46 @@ def ensure_schema_updates():
     """Create newer tables/indexes if they are missing in an existing DB."""
     db = get_db()
 
+    user_columns = {
+        row["name"]
+        for row in db.execute("PRAGMA table_info(users)").fetchall()
+    }
+    if "grocery_group_id" not in user_columns:
+        db.execute("ALTER TABLE users ADD COLUMN grocery_group_id INTEGER")
+
+    # Existing users default to their own personal grocery group.
+    db.execute(
+        "UPDATE users SET grocery_group_id = id WHERE grocery_group_id IS NULL"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_users_grocery_group_id ON users (grocery_group_id)"
+    )
+
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS grocery_share_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            requester_id INTEGER NOT NULL,
+            recipient_id INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            responded_at TIMESTAMP,
+            FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE CASCADE,
+            CHECK (status IN ('pending', 'accepted', 'declined')),
+            CHECK (requester_id <> recipient_id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_grocery_share_requests_recipient_status "
+        "ON grocery_share_requests (recipient_id, status)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_grocery_share_requests_requester_status "
+        "ON grocery_share_requests (requester_id, status)"
+    )
+
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS favorites (

@@ -29,6 +29,7 @@ GROCERY_ZONES = [
     "Meat & Seafood / Deli",
     "Dairy / Eggs",
     "Bakery",
+    "Snacks/Candy",
     "Pantry / Dry Goods",
     "Frozen",
     "Household / Personal Care",

@@ -8,7 +8,27 @@
     <div class="row mt-4">
       <div class="col-md-6">
         <h3>Ingredients</h3>
-        <pre>{{ recipe['ingredients'] }}</pre>
+        {% if parsed_ingredients %}
+          <ul class="list-group ingredient-list">
+            {% for ingredient in parsed_ingredients %}
+              <li class="list-group-item ingredient-list-item">
+                <div class="ingredient-row">
+                  <span class="ingredient-amount text-muted">{{ ingredient['amount'] if ingredient['amount'] else 'No amount' }}</span>
+                  <span class="ingredient-name">{{ ingredient['item'] }}</span>
+                  {% if g.user %}
+                    <form method="POST" action="{{ url_for('recipes.add_ingredient_to_grocery', id=recipe['id']) }}" class="ingredient-add-form">
+                      <input type="hidden" name="item_name" value="{{ ingredient['item'] }}">
+                      <input type="hidden" name="amount" value="{{ ingredient['amount'] }}">
+                      <button type="submit" class="btn btn-sm btn-outline-success">Add to Grocery</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <pre>{{ recipe['ingredients'] }}</pre>
+        {% endif %}
       </div>
       <div class="col-md-6">
         <h3>Instructions</h3>

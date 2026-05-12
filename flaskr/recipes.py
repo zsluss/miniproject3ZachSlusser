@@ -117,6 +117,7 @@ def create():
 def detail(id):
     """View recipe details."""
     recipe = get_recipe(id, check_author=False)
+    parsed_ingredients = _parse_ingredients_text(recipe["ingredients"])
     
     # Detail view uses a separate lookup so thatj the favorite button can function correctly
     is_favorited = False
@@ -128,7 +129,42 @@ def detail(id):
         ).fetchone()
         is_favorited = fav is not None
     
-    return render_template("recipes/detail.html", recipe=recipe, is_favorited=is_favorited)
+    return render_template(
+        "recipes/detail.html",
+        recipe=recipe,
+        is_favorited=is_favorited,
+        parsed_ingredients=parsed_ingredients,
+    )
+
+
+@bp.route("/<int:id>/ingredient/add", methods=("POST",))
+@login_required
+def add_ingredient_to_grocery(id):
+    """Add a parsed ingredient from a recipe directly to the grocery list."""
+    # Validate recipe exists before adding related items.
+    get_recipe(id, check_author=False)
+
+    item_name = _clean_item_name(request.form.get("item_name", ""))
+    amount = request.form.get("amount", "").strip() or None
+
+    if not item_name:
+        flash("Ingredient name is required to add to grocery list.")
+        return redirect(url_for("recipes.detail", id=id))
+
+    db = get_db()
+    zone = _get_learned_zone_for_item(db, item_name)
+    db.execute(
+        "INSERT INTO grocery_items (user_id, item_name, amount, zone, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
+        (g.user["id"], item_name, amount, zone),
+    )
+    db.commit()
+
+    if amount:
+        flash(f"Added '{amount} {item_name}' to your grocery list.")
+    else:
+        flash(f"Added '{item_name}' to your grocery list.")
+
+    return redirect(url_for("recipes.detail", id=id))
 
 
 @bp.route("/<int:id>/edit", methods=("GET", "POST"))
@@ -377,6 +413,76 @@ def _build_mealdb_ingredients(data):
             lines.append(f"{measure} {ingredient}".strip())
 
     return "\n".join(lines)
+
+
+def _parse_ingredients_text(ingredients_text):
+    """Parse raw ingredients text into rows with optional amount + item columns."""
+    parsed_ingredients = []
+    for line in (ingredients_text or "").splitlines():
+        parsed_line = _parse_ingredient_line(line)
+        if parsed_line is not None:
+            parsed_ingredients.append(parsed_line)
+    return parsed_ingredients
+
+
+def _parse_ingredient_line(line):
+    """Split one ingredient line into amount and item using the first comma if provided."""
+    normalized_line = " ".join((line or "").split())
+    if not normalized_line:
+        return None
+
+    amount = ""
+    item_name = normalized_line
+
+    if "," in normalized_line:
+        left, right = normalized_line.split(",", 1)
+        left = left.strip()
+        right = right.strip()
+        if right:
+            amount = left
+            item_name = right
+
+    return {
+        "raw": normalized_line,
+        "amount": amount,
+        "item": item_name,
+    }
+
+
+def _clean_item_name(item_name):
+    """Collapse extra internal whitespace while preserving user-entered casing."""
+    return " ".join(item_name.strip().split())
+
+
+def _normalize_item_name(item_name):
+    """Normalize grocery names so case and extra spacing don't create duplicates."""
+    return " ".join(item_name.strip().split()).casefold()
+
+
+def _get_learned_zone_for_item(db, item_name):
+    """Return learned zone for item name, defaulting to Other if unknown."""
+    normalized_item = _normalize_item_name(item_name)
+    if not normalized_item:
+        return "Other"
+
+    learned = db.execute(
+        "SELECT zone FROM grocery_item_zone_memory WHERE normalized_item = ?",
+        (normalized_item,),
+    ).fetchone()
+    if learned and learned["zone"]:
+        return learned["zone"]
+
+    fallback = db.execute(
+        "SELECT zone FROM grocery_items"
+        " WHERE LOWER(TRIM(item_name)) = LOWER(TRIM(?))"
+        " ORDER BY COALESCE(found_at, created_at) DESC, id DESC"
+        " LIMIT 1",
+        (item_name,),
+    ).fetchone()
+    if fallback and fallback["zone"]:
+        return fallback["zone"]
+
+    return "Other"
 
 
 def _fetch_json(url):

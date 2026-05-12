@@ -42,6 +42,39 @@ img {
   color: #495057;
 }
 
+.ingredient-list {
+  border-radius: 0.375rem;
+}
+
+.ingredient-list-item {
+  padding: 0.6rem 0.75rem;
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 9rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ingredient-amount {
+  font-size: 0.9rem;
+  border-right: 1px solid #dee2e6;
+  padding-right: 0.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ingredient-name {
+  font-weight: 500;
+  min-width: 0;
+}
+
+.ingredient-add-form {
+  margin: 0;
+}
+
 .random-main-thumb {
   width: 120px;
   height: 120px;
@@ -243,6 +276,21 @@ img {
   }
 
   .modal-footer .btn {
+    width: 100%;
+  }
+
+  .ingredient-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    align-items: start;
+  }
+
+  .ingredient-amount {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .ingredient-add-form .btn {
     width: 100%;
   }
 

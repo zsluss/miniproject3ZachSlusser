@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row g-3 align-items-end mb-3">
+      <div class="col-12 col-lg">
+        <h1>Shopping List</h1>
+        <p class="text-muted mb-0">In-store mode for your shared group: tap Found It as you grab each item.</p>
+      </div>
+      <div class="col-12 col-lg-auto text-lg-end">
+        <div class="d-grid gap-2 d-sm-flex justify-content-lg-end">
+          {% if last_found_item %}
+            <form method="POST" action="{{ url_for('grocery.undo_found') }}">
+              <button type="submit" class="btn btn-outline-warning">Undo Last Found It</button>
+            </form>
+          {% endif %}
+          <a href="{{ url_for('grocery.settings') }}" class="btn btn-outline-dark">Settings</a>
+          <a href="{{ url_for('grocery.index') }}" class="btn btn-outline-primary">Open Grocery Planner</a>
+          <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-secondary">Back to Recipes</a>
+        </div>
+      </div>
+    </div>
+
+    {% if items %}
+      <div class="d-grid gap-3 mb-3">
+        {% set ns = namespace(previous_zone='') %}
+        {% for item in items %}
+          {% set current_zone = item['zone'] if item['zone'] else 'Other' %}
+          {% if current_zone != ns.previous_zone %}
+            <h5 class="mt-1 mb-1 text-primary">{{ current_zone }}</h5>
+            {% set ns.previous_zone = current_zone %}
+          {% endif %}
+          <div class="card grocery-item-card">
+            <div class="card-body">
+              <div class="row g-2 align-items-center flex-nowrap">
+                <div class="col-3 col-lg-3 shopping-item-actions">
+                  <form method="POST" action="{{ url_for('grocery.mark_found', id=item['id']) }}">
+                    <button type="submit" class="btn btn-success">Found It</button>
+                  </form>
+                </div>
+                <div class="col-9 col-lg-9">
+                  <div class="grocery-item-name-row">
+                    <span class="grocery-item-name">{{ item['item_name'] }}</span>
+                    {% if item['amount'] %}
+                      <span class="badge text-bg-light border">{{ item['amount'] }}</span>
+                    {% endif %}
+                  </div>
+                  <small class="text-muted">Added by {{ item['username'] }} on {{ item['created_at'].strftime('%b %d, %Y %I:%M %p') if item['created_at'] else '' }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="grocery-empty">
+        <p class="mb-1">Shopping list is complete.</p>
+        <p class="mb-0 text-muted">No active items left to find right now.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

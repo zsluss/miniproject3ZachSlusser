@@ -1,0 +1,17 @@
+# Exclude local data and dev artifacts from Docker build context
+instance/
+.venv/
+venv/
+.git/
+.gitignore
+.vscode/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+recipeapp.tar
+*.tar
+*.db
+*.sqlite
+.env
+.flaskenv

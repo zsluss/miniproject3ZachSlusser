@@ -13,3 +13,4 @@ instance/*.db
 .DS_Store
 Thumbs.db
 .vscode/ 
+*.tar

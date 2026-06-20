@@ -5,6 +5,7 @@
 # Final Project
 
 import os
+from datetime import timedelta
 
 from flask import Flask, g, redirect, render_template, url_for
 
@@ -16,6 +17,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
         RANDOM_RECIPE_API_URL=os.environ.get('RANDOM_RECIPE_API_URL', ''),
+        SESSION_PERMANENT=True,
+        PERMANENT_SESSION_LIFETIME=timedelta(days=30),
     )
 
     if test_config is None:
@@ -39,11 +42,16 @@ def create_app(test_config=None):
 
     from . import db
     db.init_app(app)
+    with app.app_context():
+        db.ensure_schema_updates()
 
     from . import auth
     app.register_blueprint(auth.bp)
 
     from . import recipes
     app.register_blueprint(recipes.bp)
+
+    from . import grocery
+    app.register_blueprint(grocery.bp)
 
     return app

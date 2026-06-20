@@ -1,7 +1,4 @@
-### INF601 - Advanced Programming in Python
-### Zach Slusser
-### Final Project
- 
+https://github.com/zsluss/Recipe_GroceryList
  
 # Recipe Box
  
@@ -10,7 +7,7 @@ A Flask web application for storing, sharing, and managing personal recipes with
 ## Description
  
 Recipe Box is a full‑stack web app I built with Flask that lets users create an account and keep track of their own recipes. You can browse recipes from everyone, add your own with ingredients and instructions, and remove anything you’ve posted. Building it gave me a chance to work with core web development concepts like secure user authentication, SQLite with proper foreign key relationships, and a responsive Bootstrap layout with interactive components.
-The primary use for this is to run it on a local server for your family to share recipes on. It will show all of the recipes that your family adds to it but allows you to pull up just yours if you are trying to find something specific. I'd like to also add a grocery option to this as well.
+The primary use for this is to run it on a local server for your family to share recipes on. It will show all of the recipes that your family adds to it but allows you to pull up just yours if you are trying to find something specific. It also has a grocerylist that multiple users can use and share recipes across the network.
  
 ## Getting Started
  
